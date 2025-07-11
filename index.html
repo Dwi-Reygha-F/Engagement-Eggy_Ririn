@@ -129,6 +129,22 @@
       .card-engagement, .ucapan-content { padding: 1.5rem; }
       .corner-decor { width: 150px; }
     }
+
+    /* Blur background saat modal tampil */
+  .modal-backdrop.show {
+    backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  /* Sembunyikan konten saat awal */
+  .page-content {
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+
+  .page-content.show {
+    opacity: 1;
+  }
   </style>
 </head>
 <body>
@@ -138,7 +154,12 @@
   <source src="lagu1.mp3" type="audio/mpeg">
 </audio>
 
+<audio id="click-sound">
+  <source src="click.mp3" type="audio/mpeg">
+</audio>
+
 <!-- Slide 1 -->
+ <div class="page-content">
 <section class="bg1">
   <img src="dekor1.png" class="corner-decor decor-top-left" data-aos="fade-down" data-aos-delay="200" />
   <img src="dekor1.png" class="corner-decor decor-top-right" data-aos="fade-down" data-aos-delay="400" />
@@ -193,7 +214,7 @@ Namun perjalanan dua hati yang saling menjaga dan setia..."></span></p>
       </div>
     </div>
     <h2><span class="typing" data-text="Kenangan Manis"></span></h2>
-    <p><span class="typing" data-text="Hal baik akan kembali dalam bentuk hal baik apapun itu..."></span></p>
+    <p><span class="typing" data-text="'Hal baik akan kembali dalam bentuk hal baik apapun itu...'"></span></p>
     <p><span class="typing" data-text="And this is an engagement gift for you from us, so you'll be the perfect couple!"></span></p>
   </div>
 </section>
@@ -229,6 +250,35 @@ Namun perjalanan dua hati yang saling menjaga dan setia..."></span></p>
     height: 400px; /* Lebih pendek di mobile */
   }
 }
+.play-button {
+  background: #ffffffcc;
+  border: none;
+  width: 100px;
+  height: 100px;
+  font-size: 2.5rem;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
+  animation: pulse 2s infinite;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.play-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 25px rgba(255, 105, 180, 0.8);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 105, 180, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+  }
+}
+
 </style>
 
 
@@ -304,10 +354,28 @@ Namun perjalanan dua hati yang saling menjaga dan setia..."></span></p>
         <span class="carousel-control-next-icon"></span>
       </button>
     </div>
+    <br>
        <h2><span class="typing" data-text="Behind The Scene"></span></h2>
+       <br>
+        <p><span class="typing" data-text="Created By Resh (Reygha And Shella)"></span></p>
   </div>
 
 </section>
+</div>
+
+<!-- Modal Awal -->
+<!-- Modal Awal - Minimalist Play Button -->
+<div class="modal fade" id="startModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 bg-transparent d-flex justify-content-center align-items-center" style="box-shadow: none;">
+      <button id="playMusicBtn" class="play-button">
+        ▶️
+      </button>
+    </div>
+  </div>
+</div>
+
+
 
 
 
@@ -319,49 +387,65 @@ Namun perjalanan dua hati yang saling menjaga dan setia..."></span></p>
 
 <!-- Init -->
 <script>
-  AOS.init({ duration: 1000, once: true });
+  // Fungsi untuk memulai semua animasi
+  function mulaiAOSdanTyped() {
+    AOS.init({ duration: 1000, once: true });
 
-  // Judul utama
-  const typed = new Typed("#typing-text", {
-    strings: ["Happy Engagement!! 💍", "Selamat Bertunangan! 🎉"],
-    typeSpeed: 80,
-    backSpeed: 40,
-    loop: true,
-    backDelay: 1500,
-  });
+    const typed = new Typed("#typing-text", {
+      strings: ["Happy Engagement!! 💍", "Selamat Bertunangan! 🎉"],
+      typeSpeed: 80,
+      backSpeed: 40,
+      loop: true,
+      backDelay: 1500,
+    });
 
-  // Fungsi async untuk typing per huruf, satu-satu
-  async function typeSequentially() {
-    const elements = document.querySelectorAll('.typing');
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements[i];
-      const text = el.getAttribute('data-text');
-      const id = 'typed-' + i;
-      el.setAttribute('id', id);
+    async function typeSequentially() {
+      const elements = document.querySelectorAll('.typing');
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i];
+        const text = el.getAttribute('data-text');
+        const id = 'typed-' + i;
+        el.setAttribute('id', id);
 
-      await new Promise(resolve => {
-        new Typed('#' + id, {
-          strings: [text],
-          typeSpeed: 40,
-          showCursor: false,
-          onComplete: () => resolve()
+        await new Promise(resolve => {
+          new Typed('#' + id, {
+            strings: [text],
+            typeSpeed: 40,
+            showCursor: false,
+            onComplete: () => resolve()
+          });
         });
-      });
+      }
     }
+
+    typeSequentially();
   }
 
-  typeSequentially();
+  // Tampilkan modal saat halaman dimuat
+  window.addEventListener("DOMContentLoaded", function () {
+    const modal = new bootstrap.Modal(document.getElementById("startModal"));
+    modal.show();
 
-  // Musik auto play saat klik
-  window.addEventListener("click", function playMusicOnce() {
-    const audio = document.getElementById("bg-music");
-    if (audio.paused) {
+    document.getElementById("playMusicBtn").addEventListener("click", function () {
+      const audio = document.getElementById("bg-music");
+      const clickSound = document.getElementById("click-sound");
+
+      // Play sound klik
+      clickSound.play().catch(e => console.warn("Gagal play klik:", e));
+
+      // Mainkan musik utama
       audio.muted = false;
-      audio.play().catch(e => console.log("Autoplay gagal:", e));
-    }
-    window.removeEventListener("click", playMusicOnce);
+      audio.play().catch(e => console.warn("Gagal play musik:", e));
+
+      // Tutup modal dan munculkan konten
+      modal.hide();
+      document.querySelector(".page-content").classList.add("show");
+
+      mulaiAOSdanTyped();
+    });
   });
 </script>
+
 
 
 </body>
